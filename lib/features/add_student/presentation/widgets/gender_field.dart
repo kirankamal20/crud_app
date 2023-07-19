@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 class GenderField extends StatefulWidget {
+  final List<String> genderOptions;
+  final String? selectedGender;
+  final Function(String?) onChanged;
   const GenderField({
     super.key,
     required this.genderOptions,
@@ -8,15 +11,11 @@ class GenderField extends StatefulWidget {
     required this.onChanged,
   });
 
-  final List<String> genderOptions;
-  final String selectedGender;
-  final Function(String?) onChanged;
   @override
   State<GenderField> createState() => _GenderFieldState();
 }
 
 class _GenderFieldState extends State<GenderField> {
-  TextEditingController dateInput = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -32,6 +31,7 @@ class _GenderFieldState extends State<GenderField> {
           ),
           DropdownButtonFormField(
             decoration: const InputDecoration(
+              hintText: "Select gender",
               contentPadding: EdgeInsets.all(10),
               hintStyle: TextStyle(color: Colors.grey),
               border: OutlineInputBorder(),

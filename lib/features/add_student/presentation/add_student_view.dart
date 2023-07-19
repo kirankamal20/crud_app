@@ -16,22 +16,24 @@ class AddStudentView extends StatefulWidget {
   final String studentAge;
   final String studentDob;
   final String studentCountry;
-  final String studentGender;
-  final String studentImage;
+  final String? studentGender;
+  final String? studentImage;
   final String appBarTittleName;
   final bool isVisibleAddButton;
   final int index;
+  final String countryCode;
   const AddStudentView({
     super.key,
     required this.studentName,
     required this.studentAge,
     required this.studentDob,
     required this.studentCountry,
-    required this.studentGender,
+    this.studentGender,
     required this.studentImage,
     required this.appBarTittleName,
     required this.isVisibleAddButton,
     required this.index,
+    required this.countryCode,
   });
 
   @override
@@ -46,19 +48,21 @@ class _AddStudentViewState extends State<AddStudentView> {
   TextEditingController dateOfBirthController = TextEditingController();
   TextEditingController nameController = TextEditingController();
   TextEditingController ageController = TextEditingController();
+  DateTime? pickedDate = DateTime.now();
   List<String> genderOptions = ['Male', 'Female', 'Other'];
-  String? imageFile;
+  String? imageFilePath;
   String countryName = "";
   String dateOfBirth = "";
-  String selectedGender = "";
+  String? selectedGender;
   String formattedDate = "";
+  String countryCode = "";
 
   /// Get from image gallery
   void getImageFromGallery() async {
     var pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
-        imageFile = File(pickedFile.path).path;
+        imageFilePath = File(pickedFile.path).path;
       });
     }
   }
@@ -68,41 +72,45 @@ class _AddStudentViewState extends State<AddStudentView> {
     var pickedFile = await _picker.pickImage(source: ImageSource.camera);
     if (pickedFile != null) {
       setState(() {
-        imageFile = File(pickedFile.path).path;
+        imageFilePath = File(pickedFile.path).path;
       });
     }
   }
 
   void addStudentDetails() {
     if (formKey.currentState!.validate()) {
-      if (imageFile != null) {
+      if (imageFilePath != null) {
         hiveMethods.addStudentDetails(
           StudentDetailsModel(
             name: nameController.text,
             age: ageController.text,
             date: formattedDate,
             country: countryName,
-            gender: selectedGender,
-            imagePath: imageFile!,
+            gender: selectedGender ?? "",
+            imagePath: imageFilePath!,
+            countryCode: countryCode,
           ),
         );
-        const snackBar = SnackBar(
+
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          backgroundColor: Colors.green,
           content: Text("Successfully Added"),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        ));
+
         resetForm();
+        Navigator.pop(context);
+        FocusScope.of(context).unfocus();
       } else {
-        const snackBar = SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Please add your image'),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        ));
       }
     }
   }
 
   void updateStudentDetails() {
     if (formKey.currentState!.validate()) {
-      if (imageFile != null) {
+      if (imageFilePath != null) {
         hiveMethods.updateStudentDetails(
           index: widget.index,
           studentDetailsModel: StudentDetailsModel(
@@ -110,16 +118,19 @@ class _AddStudentViewState extends State<AddStudentView> {
             age: ageController.text,
             date: formattedDate,
             country: countryName,
-            gender: selectedGender,
-            imagePath: imageFile!,
+            gender: selectedGender ?? "",
+            imagePath: imageFilePath!,
+            countryCode: countryCode,
           ),
         );
         const snackBar = SnackBar(
+          backgroundColor: Colors.green,
           content: Text("Successfully Updated"),
         );
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
         resetForm();
         Navigator.pop(context);
+        FocusScope.of(context).unfocus();
       } else {
         const snackBar = SnackBar(
           content: Text('Please add your image'),
@@ -131,11 +142,17 @@ class _AddStudentViewState extends State<AddStudentView> {
 
   void resetForm() {
     formKey.currentState?.reset();
-    if (imageFile != null) {
-      setState(() {
-        imageFile = null;
-      });
-    }
+    dateOfBirthController.clear();
+    nameController.clear();
+    ageController.clear();
+    setState(() {
+      selectedGender = null;
+      if (imageFilePath != null) {
+        setState(() {
+          imageFilePath = null;
+        });
+      }
+    });
   }
 
   @override
@@ -144,9 +161,9 @@ class _AddStudentViewState extends State<AddStudentView> {
     nameController.text = widget.studentName;
     ageController.text = widget.studentAge;
     countryName = widget.studentCountry;
-    imageFile = imageFile;
+    imageFilePath = widget.studentImage;
     selectedGender = widget.studentGender;
-
+    countryCode = widget.countryCode;
     super.initState();
   }
 
@@ -154,6 +171,7 @@ class _AddStudentViewState extends State<AddStudentView> {
   void dispose() {
     formKey.currentState?.dispose();
     dateOfBirthController.dispose();
+    ageController.dispose();
     nameController.dispose();
     super.dispose();
   }
@@ -173,7 +191,7 @@ class _AddStudentViewState extends State<AddStudentView> {
             onPressed: () {
               resetForm();
             },
-            child: const Text("Reset"),
+            child: const Text("Reset", style: TextStyle(color: Colors.white)),
           )
         ],
       ),
@@ -207,14 +225,14 @@ class _AddStudentViewState extends State<AddStudentView> {
                   dateInputcontroller: dateOfBirthController,
                   onChanged: (v) {},
                   onTap: () async {
-                    DateTime? pickedDate = await showDatePicker(
+                    pickedDate = await showDatePicker(
                         context: context,
                         initialDate: DateTime.now(),
                         firstDate: DateTime(1950),
                         lastDate: DateTime(2100));
                     if (pickedDate != null) {
-                      formattedDate =
-                          DateFormat('dd-MM-yyyy').format(pickedDate);
+                      formattedDate = DateFormat('dd-MM-yyyy')
+                          .format(pickedDate ?? DateTime.now());
 
                       setState(() {
                         dateOfBirthController.text = formattedDate;
@@ -249,7 +267,7 @@ class _AddStudentViewState extends State<AddStudentView> {
                   height: 10,
                 ),
                 CountryListPick(
-                    initialSelection: widget.studentCountry,
+                    initialSelection: '+91',
                     appBar: AppBar(
                       title: const Text('Chose Country '),
                     ),
@@ -263,6 +281,7 @@ class _AddStudentViewState extends State<AddStudentView> {
                     onChanged: (value) {
                       if (value != null) {
                         countryName = value.name!;
+                        countryCode = value.dialCode!;
                       }
                     },
                     useUiOverlay: true,
@@ -283,7 +302,7 @@ class _AddStudentViewState extends State<AddStudentView> {
                     dashPattern: const [5],
                     color: Colors.grey,
                     strokeWidth: 1,
-                    child: imageFile == null
+                    child: imageFilePath == null
                         ? Container(
                             alignment: Alignment.center,
                             child: Column(
@@ -341,7 +360,7 @@ class _AddStudentViewState extends State<AddStudentView> {
                                   width: 100,
                                   decoration: const BoxDecoration(),
                                   child: Image.file(
-                                    File(imageFile!),
+                                    File(imageFilePath!),
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -350,9 +369,9 @@ class _AddStudentViewState extends State<AddStudentView> {
                                   right: -10,
                                   child: IconButton(
                                     onPressed: () {
-                                      if (imageFile != null) {
+                                      if (imageFilePath != null) {
                                         setState(() {
-                                          imageFile = null;
+                                          imageFilePath = null;
                                         });
                                       }
                                     },

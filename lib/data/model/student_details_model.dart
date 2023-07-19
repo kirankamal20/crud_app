@@ -8,6 +8,7 @@ class StudentDetailsModel {
   final String country;
   final String gender;
   final String imagePath;
+  final String countryCode;
   StudentDetailsModel({
     required this.name,
     required this.age,
@@ -15,6 +16,7 @@ class StudentDetailsModel {
     required this.country,
     required this.gender,
     required this.imagePath,
+    required this.countryCode,
   });
 
   StudentDetailsModel copyWith({
@@ -24,6 +26,7 @@ class StudentDetailsModel {
     String? country,
     String? gender,
     String? imagePath,
+    String? countryCode,
   }) {
     return StudentDetailsModel(
       name: name ?? this.name,
@@ -32,6 +35,7 @@ class StudentDetailsModel {
       country: country ?? this.country,
       gender: gender ?? this.gender,
       imagePath: imagePath ?? this.imagePath,
+      countryCode: countryCode ?? this.countryCode,
     );
   }
 
@@ -43,6 +47,7 @@ class StudentDetailsModel {
       'country': country,
       'gender': gender,
       'imagePath': imagePath,
+      'countryCode': countryCode,
     };
   }
 
@@ -54,17 +59,18 @@ class StudentDetailsModel {
       country: map['country'] as String,
       gender: map['gender'] as String,
       imagePath: map['imagePath'] as String,
+      countryCode: map['countryCode'] as String,
     );
   }
 
   String toJson() => json.encode(toMap());
 
   factory StudentDetailsModel.fromJson(String source) =>
-      StudentDetailsModel.fromMap(json.decode(source) as Map<String, dynamic>);
+      StudentDetailsModel.fromMap(json.decode(source) as Map<dynamic, dynamic>);
 
   @override
   String toString() {
-    return 'StudentDetailsModel(name: $name, age: $age, date: $date, country: $country, gender: $gender, imagePath: $imagePath)';
+    return 'StudentDetailsModel(name: $name, age: $age, date: $date, country: $country, gender: $gender, imagePath: $imagePath, countryCode: $countryCode)';
   }
 
   @override
@@ -76,7 +82,8 @@ class StudentDetailsModel {
         other.date == date &&
         other.country == country &&
         other.gender == gender &&
-        other.imagePath == imagePath;
+        other.imagePath == imagePath &&
+        other.countryCode == countryCode;
   }
 
   @override
@@ -86,6 +93,7 @@ class StudentDetailsModel {
         date.hashCode ^
         country.hashCode ^
         gender.hashCode ^
-        imagePath.hashCode;
+        imagePath.hashCode ^
+        countryCode.hashCode;
   }
 }

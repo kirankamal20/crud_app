@@ -18,7 +18,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final StudentDb hiveMethods = StudentDb();
-  late final List<StudentDetailsModel> studentdetailsList;
+  List<StudentDetailsModel> studentdetailsList = [];
   bool isLoading = true;
 
   List<StudentDetailsModel> studentSearchResult = [];
@@ -26,17 +26,23 @@ class _HomeViewState extends State<HomeView> {
   void search(String searchString) {
     setState(
       () {
-        studentSearchResult = studentdetailsList
-            .where((item) =>
-                item.name.toLowerCase().contains(searchString.toLowerCase()) ||
-                item.gender
-                    .toLowerCase()
-                    .contains(searchString.toLowerCase()) ||
-                item.country
-                    .toLowerCase()
-                    .contains(searchString.toLowerCase()) ||
-                item.date.toLowerCase().contains(searchString.toLowerCase()))
-            .toList();
+        if (searchString.isNotEmpty) {
+          studentdetailsList = studentdetailsList
+              .where((item) =>
+                  item.name
+                      .toLowerCase()
+                      .contains(searchString.toLowerCase()) ||
+                  item.gender
+                      .toLowerCase()
+                      .contains(searchString.toLowerCase()) ||
+                  item.country
+                      .toLowerCase()
+                      .contains(searchString.toLowerCase()) ||
+                  item.date.toLowerCase().contains(searchString.toLowerCase()))
+              .toList();
+        } else {
+          fetchStudentDetails();
+        }
       },
     );
   }
@@ -51,6 +57,17 @@ class _HomeViewState extends State<HomeView> {
       isLoading = false;
     });
     print(studentdetailsList);
+  }
+
+  void deleteStudent({required int index}) async {
+    await hiveMethods.deleteStudentDetails(index);
+    await fetchStudentDetails();
+    const snackBar = SnackBar(
+      backgroundColor: Colors.red,
+      content: Text("Successfully Deleted"),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   void searchControllerListener() {
@@ -68,6 +85,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   void dispose() {
     searchController.removeListener(searchControllerListener);
+    searchController.dispose();
     super.dispose();
   }
 
@@ -76,7 +94,10 @@ class _HomeViewState extends State<HomeView> {
     return Scaffold(
       appBar: AppBar(
           centerTitle: true,
-          title: const Text("Students Details"),
+          title: const Text(
+            "Students Details",
+            style: TextStyle(color: Colors.white),
+          ),
           actions: [
             AnimSearchBar(
               width: MediaQuery.of(context).size.width,
@@ -92,98 +113,115 @@ class _HomeViewState extends State<HomeView> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : studentdetailsList.isNotEmpty
-              ? GridView.builder(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.all(15),
-                  itemCount: studentdetailsList.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2, childAspectRatio: 0.58),
-                  itemBuilder: (context, index) {
-                    var studentdetails = studentdetailsList[index];
-                    return SizedBox(
-                      height: 150,
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Stack(
-                            children: [
-                              Center(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Center(
-                                      child: SizedBox(
-                                        height: 150,
-                                        width: 170,
-                                        child: Image.file(
-                                          File(studentdetails.imagePath),
+              ? RefreshIndicator(
+                  onRefresh: () async {
+                    Future.delayed(const Duration(seconds: 4));
+                    return fetchStudentDetails();
+                  },
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.all(15),
+                    itemCount: studentdetailsList.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2, childAspectRatio: 0.58),
+                    itemBuilder: (context, index) {
+                      var studentdetails = studentdetailsList[index];
+                      return SizedBox(
+                        height: 150,
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Stack(
+                              children: [
+                                Center(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Center(
+                                        child: SizedBox(
+                                          height: 150,
+                                          width: 170,
+                                          child: Image.file(
+                                            File(studentdetails.imagePath),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(
-                                      height: 5,
-                                    ),
-                                    Text("Name : ${studentdetails.name}"),
-                                    Text("Age : ${studentdetails.age}"),
-                                    Text("gender : ${studentdetails.gender}"),
-                                    Text("Dob : ${studentdetails.date}"),
-                                    Text("Country : ${studentdetails.country}")
-                                  ],
-                                ),
-                              ),
-                              Positioned(
-                                right: 0,
-                                child: IconButton(
-                                  onPressed: () async {
-                                    await hiveMethods
-                                        .deleteStudentDetails(index);
-                                    await fetchStudentDetails();
-                                    // setState(() {});
-                                  },
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    color: Colors.red,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: IconButton(
-                                  onPressed: () async {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => AddStudentView(
-                                          index: index,
-                                          isVisibleAddButton: false,
-                                          appBarTittleName: "Update Student",
-                                          studentName: studentdetails.name,
-                                          studentAge: studentdetails.age,
-                                          studentDob: studentdetails.date,
-                                          studentCountry:
-                                              studentdetails.country,
-                                          studentGender: studentdetails.gender,
-                                          studentImage:
-                                              studentdetails.imagePath,
-                                        ),
+                                      const SizedBox(
+                                        height: 5,
                                       ),
-                                    ).then((value) async {
-                                      await fetchStudentDetails();
-                                    });
-                                  },
-                                  icon: const Icon(
-                                    Icons.edit,
-                                    color: Colors.blue,
+                                      Text(
+                                        "Name : ${studentdetails.name}",
+                                        style: const TextStyle(fontSize: 13),
+                                      ),
+                                      Text("Age : ${studentdetails.age}",
+                                          style: const TextStyle(fontSize: 13)),
+                                      Text("gender : ${studentdetails.gender}",
+                                          style: const TextStyle(fontSize: 13)),
+                                      Text("Dob : ${studentdetails.date}",
+                                          style: const TextStyle(fontSize: 13)),
+                                      Text(
+                                          "Country : ${studentdetails.country}",
+                                          style: const TextStyle(fontSize: 13))
+                                    ],
                                   ),
                                 ),
-                              )
-                            ],
+                                Positioned(
+                                  right: 0,
+                                  child: IconButton(
+                                    onPressed: () async {
+                                      deleteStudent(index: index);
+                                    },
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: -8,
+                                  right: -8,
+                                  child: IconButton(
+                                    onPressed: () async {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AddStudentView(
+                                            countryCode:
+                                                studentdetails.countryCode,
+                                            index: index,
+                                            isVisibleAddButton: false,
+                                            appBarTittleName: "Update Student",
+                                            studentName: studentdetails.name,
+                                            studentAge: studentdetails.age,
+                                            studentDob: studentdetails.date,
+                                            studentCountry:
+                                                studentdetails.country,
+                                            studentGender:
+                                                studentdetails.gender,
+                                            studentImage:
+                                                studentdetails.imagePath,
+                                          ),
+                                        ),
+                                      ).then((value) async {
+                                        await fetchStudentDetails();
+                                      });
+                                    },
+                                    icon: const Icon(
+                                      Icons.edit,
+                                      color: Colors.blue,
+                                      size: 17,
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 )
               : const Center(child: Text("No Student Data Found")),
       floatingActionButton: FloatingActionButton(
@@ -192,15 +230,16 @@ class _HomeViewState extends State<HomeView> {
             context,
             MaterialPageRoute(
               builder: (context) => const AddStudentView(
-                  index: 0,
-                  isVisibleAddButton: true,
-                  appBarTittleName: "Add student",
-                  studentName: "",
-                  studentAge: "",
-                  studentDob: "",
-                  studentCountry: "",
-                  studentGender: "Male",
-                  studentImage: ""),
+                index: 0,
+                isVisibleAddButton: true,
+                appBarTittleName: "Add student",
+                studentName: "",
+                studentAge: "",
+                studentDob: "",
+                studentCountry: "",
+                studentImage: null,
+                countryCode: "+91",
+              ),
             ),
           ).then((value) async => await fetchStudentDetails());
         },
