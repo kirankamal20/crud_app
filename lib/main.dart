@@ -36,11 +36,7 @@ class MyApp extends StatelessWidget {
           bottomSheetTheme: const BottomSheetThemeData(
             backgroundColor: Colors.white,
           ),
-          // inputDecorationTheme: const InputDecorationTheme(
-          //     focusColor: Colors.amber,
-          //     focusedBorder: OutlineInputBorder(
-          //         borderSide: BorderSide(color: Colors.amber)),
-          //     activeIndicatorBorder: BorderSide(color: Colors.amber)),
+          
           datePickerTheme: const DatePickerThemeData(
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.white,

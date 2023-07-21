@@ -1,10 +1,10 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:anim_search_bar/anim_search_bar.dart';
 import 'package:crud_app/data/db/dbservice.dart';
 import 'package:crud_app/data/model/student_details_model.dart';
 import 'package:crud_app/features/add_student/presentation/add_student_view.dart';
+import 'package:easy_search_bar/easy_search_bar.dart';
 import 'package:flutter/material.dart';
 
 class HomeView extends StatefulWidget {
@@ -18,7 +18,6 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final StudentDb hiveMethods = StudentDb();
-  final searchController = TextEditingController();
   List<StudentDetailsModel> studentdetailsList = [];
   bool isLoading = true;
   final int itemsPerPage = 4;
@@ -136,6 +135,14 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  void showSnackBar({required String message, required Color color}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      duration: const Duration(seconds: 2),
+      backgroundColor: color,
+      content: Text(message),
+    ));
+  }
+
   void searchStudent(String searchString) {
     setState(
       () {
@@ -190,181 +197,197 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  void searchControllerListener() {
-    searchStudent(searchController.text);
-  }
-
   @override
   void initState() {
     fetchStudentDetails();
-    searchController.addListener(searchControllerListener);
+
     super.initState();
   }
 
   @override
   void dispose() {
-    searchController.removeListener(searchControllerListener);
-    searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-          centerTitle: true,
+      appBar: EasySearchBar(
+          elevation: 0.5,
           title: const Text(
             "Students Details",
             style: TextStyle(color: Colors.white),
           ),
-          actions: [
-            AnimSearchBar(
-              width: MediaQuery.of(context).size.width,
-              textController: searchController,
-              onSuffixTap: () {
-                setState(() {
-                  searchController.clear();
-                });
-              },
-              onSubmitted: (s) {},
-            ),
-          ]),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : studentdetailsList.isNotEmpty
-              ? RefreshIndicator(
-                  onRefresh: () async {
-                    Future.delayed(const Duration(seconds: 4));
-                    return fetchStudentDetails();
-                  },
-                  child: Column(
-                    children: [
-                      GridView.builder(
-                        shrinkWrap: true,
-                        padding: const EdgeInsets.all(15),
-                        itemCount: studentListPagination().length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2, childAspectRatio: 0.58),
-                        itemBuilder: (context, index) {
-                          final studentdetails = studentListPagination()[index];
-                          // var studentdetails = studentdetailsList[index];
-                          return SizedBox(
-                            height: 150,
-                            child: Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Stack(
-                                  children: [
-                                    Center(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+          onSearch: (value) {
+            searchStudent(value);
+          }),
+      body: Center(
+        child: SingleChildScrollView(
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : studentdetailsList.isNotEmpty
+                  ? RefreshIndicator(
+                      onRefresh: () async {
+                        Future.delayed(const Duration(seconds: 4));
+                        return fetchStudentDetails();
+                      },
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.79,
+                            child: GridView.builder(
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              padding: const EdgeInsets.all(15),
+                              itemCount: studentListPagination().length,
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      childAspectRatio: 0.58),
+                              itemBuilder: (context, index) {
+                                final studentdetails =
+                                    studentListPagination()[index];
+
+                                return SizedBox(
+                                  height: 150,
+                                  child: Card(
+                                    elevation: 3,
+                                    surfaceTintColor: Colors.white,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Stack(
                                         children: [
                                           Center(
-                                            child: SizedBox(
-                                              height: 150,
-                                              width: 170,
-                                              child: Image.file(
-                                                File(studentdetails.imagePath),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Center(
+                                                  child: SizedBox(
+                                                    height: 150,
+                                                    width: 180,
+                                                    child: Image.file(
+                                                      fit: BoxFit.cover,
+                                                      File(studentdetails
+                                                          .imagePath),
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 5,
+                                                ),
+                                                Text(
+                                                  "Name : ${studentdetails.name}",
+                                                  style: const TextStyle(
+                                                      fontSize: 13),
+                                                ),
+                                                Text(
+                                                    "Age : ${studentdetails.age}",
+                                                    style: const TextStyle(
+                                                        fontSize: 13)),
+                                                Text(
+                                                    "gender : ${studentdetails.gender}",
+                                                    style: const TextStyle(
+                                                        fontSize: 13)),
+                                                Text(
+                                                    "Dob : ${studentdetails.date}",
+                                                    style: const TextStyle(
+                                                        fontSize: 13)),
+                                                Text(
+                                                    "Country : ${studentdetails.country}",
+                                                    style: const TextStyle(
+                                                        fontSize: 13))
+                                              ],
+                                            ),
+                                          ),
+                                          Positioned(
+                                            right: 0,
+                                            child: IconButton(
+                                              onPressed: () async {
+                                                deleteStudentDetails(
+                                                    index: index);
+                                              },
+                                              icon: const Icon(
+                                                Icons.delete,
+                                                color: Colors.red,
                                               ),
                                             ),
                                           ),
-                                          const SizedBox(
-                                            height: 5,
-                                          ),
-                                          Text(
-                                            "Name : ${studentdetails.name}",
-                                            style:
-                                                const TextStyle(fontSize: 13),
-                                          ),
-                                          Text("Age : ${studentdetails.age}",
-                                              style: const TextStyle(
-                                                  fontSize: 13)),
-                                          Text(
-                                              "gender : ${studentdetails.gender}",
-                                              style: const TextStyle(
-                                                  fontSize: 13)),
-                                          Text("Dob : ${studentdetails.date}",
-                                              style: const TextStyle(
-                                                  fontSize: 13)),
-                                          Text(
-                                              "Country : ${studentdetails.country}",
-                                              style:
-                                                  const TextStyle(fontSize: 13))
+                                          Positioned(
+                                            bottom: -8,
+                                            right: -8,
+                                            child: IconButton(
+                                              onPressed: () async {
+                                                var result =
+                                                    await Navigator.push<bool>(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        AddStudentView(
+                                                      countryCode:
+                                                          studentdetails
+                                                              .countryCode,
+                                                      index: index,
+                                                      isVisibleAddButton: false,
+                                                      appBarTittleName:
+                                                          "Update Student",
+                                                      studentName:
+                                                          studentdetails.name,
+                                                      studentAge:
+                                                          studentdetails.age,
+                                                      studentDob:
+                                                          studentdetails.date,
+                                                      studentCountry:
+                                                          studentdetails
+                                                              .country,
+                                                      studentGender:
+                                                          studentdetails.gender,
+                                                      studentImage:
+                                                          studentdetails
+                                                              .imagePath,
+                                                    ),
+                                                  ),
+                                                );
+                                                if (result != null &&
+                                                    result == true) {
+                                                  showSnackBar(
+                                                      message:
+                                                          "Successfully Updated",
+                                                      color: Colors.blue);
+                                                  await fetchStudentDetails();
+                                                }
+                                              },
+                                              icon: const Icon(
+                                                Icons.edit,
+                                                color: Colors.blue,
+                                                size: 17,
+                                              ),
+                                            ),
+                                          )
                                         ],
                                       ),
                                     ),
-                                    Positioned(
-                                      right: 0,
-                                      child: IconButton(
-                                        onPressed: () async {
-                                          deleteStudentDetails(index: index);
-                                        },
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      bottom: -8,
-                                      right: -8,
-                                      child: IconButton(
-                                        onPressed: () async {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  AddStudentView(
-                                                countryCode:
-                                                    studentdetails.countryCode,
-                                                index: index,
-                                                isVisibleAddButton: false,
-                                                appBarTittleName:
-                                                    "Update Student",
-                                                studentName:
-                                                    studentdetails.name,
-                                                studentAge: studentdetails.age,
-                                                studentDob: studentdetails.date,
-                                                studentCountry:
-                                                    studentdetails.country,
-                                                studentGender:
-                                                    studentdetails.gender,
-                                                studentImage:
-                                                    studentdetails.imagePath,
-                                              ),
-                                            ),
-                                          ).then((value) async {
-                                            await fetchStudentDetails();
-                                          });
-                                        },
-                                        icon: const Icon(
-                                          Icons.edit,
-                                          color: Colors.blue,
-                                          size: 17,
-                                        ),
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
+                          ),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          buildPagination(),
+                          const SizedBox(
+                            height: 15,
+                          )
+                        ],
                       ),
-                      const Spacer(),
-                      buildPagination(),
-                      const SizedBox(
-                        height: 15,
-                      )
-                    ],
-                  ),
-                )
-              : const Center(child: Text("No Student Data Found")),
+                    )
+                  : const Center(child: Text("No Student Data Found")),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          var result = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => const AddStudentView(
@@ -379,9 +402,16 @@ class _HomeViewState extends State<HomeView> {
                 countryCode: "+91",
               ),
             ),
-          ).then((value) async => await fetchStudentDetails());
+          );
+          if (result != null && result == true) {
+            showSnackBar(message: "Successfully Added", color: Colors.green);
+            await fetchStudentDetails();
+          }
         },
-        child: const Icon(Icons.add),
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
       ),
     );
   }
