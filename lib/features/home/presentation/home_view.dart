@@ -23,34 +23,116 @@ class _HomeViewState extends State<HomeView> {
   bool isLoading = true;
   final int itemsPerPage = 4;
   int currentPage = 1;
+  int currentIndex = 0;
 
   Widget buildPagination() {
     final int totalPages = (studentdetailsList.length / itemsPerPage).ceil();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(totalPages, (index) {
-        final pageNumber = index + 1;
 
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              currentPage = pageNumber;
-            });
-          },
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            margin: const EdgeInsets.symmetric(horizontal: 5),
-            decoration: BoxDecoration(
-              color: pageNumber == currentPage ? Colors.amber : Colors.grey,
-              borderRadius: BorderRadius.circular(30),
+    return Padding(
+      padding: const EdgeInsets.only(right: 40),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          // Previous button
+          if (totalPages > 2)
+            GestureDetector(
+              onTap: () {
+                if (currentPage > 1) {
+                  setState(() {
+                    currentPage--;
+                  });
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.symmetric(horizontal: 5),
+                decoration: BoxDecoration(
+                  color: Colors.grey,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                ),
+              ),
             ),
-            child: Text(
-              '$pageNumber',
-              style: const TextStyle(color: Colors.white),
-            ),
+
+          ...List.generate(
+            totalPages > 2 ? 2 : totalPages,
+            (index) {
+              final pageNumber = index + 1;
+              currentIndex = pageNumber + 1;
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    currentPage = pageNumber;
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.symmetric(horizontal: 5),
+                  decoration: BoxDecoration(
+                    color: pageNumber == currentPage || pageNumber > 3
+                        ? Colors.amber
+                        : Colors.grey,
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Text(
+                    '$pageNumber',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              );
+            },
           ),
-        );
-      }),
+          if (totalPages > 2)
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  currentPage = currentIndex;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.symmetric(horizontal: 5),
+                decoration: BoxDecoration(
+                  color: currentIndex == currentPage || currentPage > 2
+                      ? currentPage < 2
+                          ? Colors.grey
+                          : Colors.amber
+                      : Colors.grey,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Text(
+                  "${currentPage < 3 ? 3 : currentPage}",
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          if (totalPages > 2)
+            GestureDetector(
+              onTap: () {
+                if (currentPage < totalPages) {
+                  setState(() {
+                    currentPage++;
+                  });
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.symmetric(horizontal: 5),
+                decoration: BoxDecoration(
+                  color: Colors.grey,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
