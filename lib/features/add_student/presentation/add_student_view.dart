@@ -1,11 +1,10 @@
 import 'dart:io';
 
-import 'package:country_list_pick/country_list_pick.dart';
 import 'package:crud_app/data/db/dbservice.dart';
 import 'package:crud_app/data/model/student_details_model.dart';
+import 'package:crud_app/features/add_student/presentation/widgets/country_dropdown.dart';
 import 'package:crud_app/features/add_student/presentation/widgets/date_of_birth_field.dart';
 import 'package:crud_app/shared/widgets/custom_textfiled.dart';
-import 'package:crud_app/features/add_student/presentation/widgets/gender_field.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -92,14 +91,8 @@ class _AddStudentViewState extends State<AddStudentView> {
           ),
         );
 
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          backgroundColor: Colors.green,
-          content: Text("Successfully Added"),
-        ));
-
-        resetForm();
-        Navigator.pop(context);
         FocusScope.of(context).unfocus();
+        Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Please add your image'),
@@ -123,14 +116,8 @@ class _AddStudentViewState extends State<AddStudentView> {
             countryCode: countryCode,
           ),
         );
-        const snackBar = SnackBar(
-          backgroundColor: Colors.green,
-          content: Text("Successfully Updated"),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-        resetForm();
-        Navigator.pop(context);
         FocusScope.of(context).unfocus();
+        Navigator.pop(context, true);
       } else {
         const snackBar = SnackBar(
           content: Text('Please add your image'),
@@ -141,18 +128,18 @@ class _AddStudentViewState extends State<AddStudentView> {
   }
 
   void resetForm() {
-    formKey.currentState?.reset();
-    dateOfBirthController.clear();
-    nameController.clear();
-    ageController.clear();
-    setState(() {
-      selectedGender = null;
-      if (imageFilePath != null) {
-        setState(() {
-          imageFilePath = null;
-        });
-      }
-    });
+    // formKey.currentState?.reset();
+    // dateOfBirthController.clear();
+    // nameController.clear();
+    // ageController.clear();
+    // setState(() {
+    //   selectedGender = null;
+    //   if (imageFilePath != null) {
+    //     setState(() {
+    //       imageFilePath = null;
+    //     });
+    //   }
+    // });
   }
 
   @override
@@ -186,13 +173,13 @@ class _AddStudentViewState extends State<AddStudentView> {
           style: const TextStyle(color: Colors.white),
         ),
         centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () {
-              resetForm();
-            },
-            child: const Text("Reset", style: TextStyle(color: Colors.white)),
-          )
+        actions: const [
+          // TextButton(
+          //   onPressed: () {
+          //     resetForm();
+          //   },
+          //   child: const Text("Reset", style: TextStyle(color: Colors.white)),
+          // )
         ],
       ),
       body: SingleChildScrollView(
@@ -247,14 +234,50 @@ class _AddStudentViewState extends State<AddStudentView> {
                 const SizedBox(
                   height: 10,
                 ),
-                GenderField(
-                  genderOptions: genderOptions,
-                  selectedGender: selectedGender,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedGender = value!;
-                    });
-                  },
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Select your gender:',
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Radio(
+                          value: "Male",
+                          groupValue: selectedGender,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedGender = value!;
+                            });
+                          },
+                        ),
+                        const Text('Male'),
+                        Radio(
+                          value: "Female",
+                          groupValue: selectedGender,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedGender = value!;
+                            });
+                          },
+                        ),
+                        const Text('Female'),
+                        Radio(
+                          value: "other",
+                          groupValue: selectedGender,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedGender = value!;
+                            });
+                          },
+                        ),
+                        const Text('Other'),
+                      ],
+                    ),
+                  ],
                 ),
                 const SizedBox(
                   height: 10,
@@ -266,26 +289,11 @@ class _AddStudentViewState extends State<AddStudentView> {
                 const SizedBox(
                   height: 10,
                 ),
-                CountryListPick(
-                    initialSelection: '+91',
-                    appBar: AppBar(
-                      title: const Text('Chose Country '),
-                    ),
-                    theme: CountryTheme(
-                      isShowFlag: true,
-                      isShowTitle: true,
-                      isShowCode: false,
-                      isDownIcon: true,
-                      showEnglishName: true,
-                    ),
-                    onChanged: (value) {
-                      if (value != null) {
-                        countryName = value.name!;
-                        countryCode = value.dialCode!;
-                      }
-                    },
-                    useUiOverlay: true,
-                    useSafeArea: false),
+                CountryPicker(
+                  onCountrySelected: (country) {
+                    countryName = country.name;
+                  },
+                ),
                 const SizedBox(
                   height: 10,
                 ),
