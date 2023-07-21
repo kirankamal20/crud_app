@@ -33,12 +33,14 @@ dependencies:
   csc_picker: ^0.2.7
   cupertino_icons: ^1.0.2
   dotted_border: ^2.0.0+3
+  easy_search_bar: ^2.5.0
   flutter:
     sdk: flutter
   flutter_form_builder: ^9.0.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   image_picker: ^1.0.1
+  infinite_scroll_pagination: ^3.2.0
   intl: ^0.18.1
   number_paginator: ^0.2.3
   searchbar_animation: ^0.0.4
