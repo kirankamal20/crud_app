@@ -2,98 +2,106 @@
 import 'dart:convert';
 
 class StudentDetailsModel {
+  final int id;
   final String name;
   final String age;
-  final String date;
+  final String dob;
   final String country;
   final String gender;
-  final String imagePath;
-  final String countryCode;
+  final String imagepath;
+  final String countrycode;
   StudentDetailsModel({
+    required this.id,
     required this.name,
     required this.age,
-    required this.date,
+    required this.dob,
     required this.country,
     required this.gender,
-    required this.imagePath,
-    required this.countryCode,
+    required this.imagepath,
+    required this.countrycode,
   });
 
   StudentDetailsModel copyWith({
+    int? id,
     String? name,
     String? age,
-    String? date,
+    String? dob,
     String? country,
     String? gender,
-    String? imagePath,
-    String? countryCode,
+    String? imagepath,
+    String? countrycode,
   }) {
     return StudentDetailsModel(
+      id: id ?? this.id,
       name: name ?? this.name,
       age: age ?? this.age,
-      date: date ?? this.date,
+      dob: dob ?? this.dob,
       country: country ?? this.country,
       gender: gender ?? this.gender,
-      imagePath: imagePath ?? this.imagePath,
-      countryCode: countryCode ?? this.countryCode,
+      imagepath: imagepath ?? this.imagepath,
+      countrycode: countrycode ?? this.countrycode,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
+      'id': id,
       'name': name,
       'age': age,
-      'date': date,
+      'dob': dob,
       'country': country,
       'gender': gender,
-      'imagePath': imagePath,
-      'countryCode': countryCode,
+      'imagepath': imagepath,
+      'countrycode': countrycode,
     };
   }
 
   factory StudentDetailsModel.fromMap(Map<dynamic, dynamic> map) {
     return StudentDetailsModel(
+      id: map['id'] as int,
       name: map['name'] as String,
       age: map['age'] as String,
-      date: map['date'] as String,
+      dob: map['dob'] as String,
       country: map['country'] as String,
       gender: map['gender'] as String,
-      imagePath: map['imagePath'] as String,
-      countryCode: map['countryCode'] as String,
+      imagepath: map['imagepath'] as String,
+      countrycode: map['countrycode'] as String,
     );
   }
 
   String toJson() => json.encode(toMap());
 
   factory StudentDetailsModel.fromJson(String source) =>
-      StudentDetailsModel.fromMap(json.decode(source) as Map<dynamic, dynamic>);
+      StudentDetailsModel.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
   String toString() {
-    return 'StudentDetailsModel(name: $name, age: $age, date: $date, country: $country, gender: $gender, imagePath: $imagePath, countryCode: $countryCode)';
+    return 'StudentDetailsModel(id: $id, name: $name, age: $age, dob: $dob, country: $country, gender: $gender, imagepath: $imagepath, countrycode: $countrycode)';
   }
 
   @override
   bool operator ==(covariant StudentDetailsModel other) {
     if (identical(this, other)) return true;
 
-    return other.name == name &&
+    return other.id == id &&
+        other.name == name &&
         other.age == age &&
-        other.date == date &&
+        other.dob == dob &&
         other.country == country &&
         other.gender == gender &&
-        other.imagePath == imagePath &&
-        other.countryCode == countryCode;
+        other.imagepath == imagepath &&
+        other.countrycode == countrycode;
   }
 
   @override
   int get hashCode {
-    return name.hashCode ^
+    return id.hashCode ^
+        name.hashCode ^
         age.hashCode ^
-        date.hashCode ^
+        dob.hashCode ^
         country.hashCode ^
         gender.hashCode ^
-        imagePath.hashCode ^
-        countryCode.hashCode;
+        imagepath.hashCode ^
+        countrycode.hashCode;
   }
 }

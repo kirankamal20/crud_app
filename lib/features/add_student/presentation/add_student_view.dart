@@ -19,7 +19,7 @@ class AddStudentView extends StatefulWidget {
   final String? studentImage;
   final String appBarTittleName;
   final bool isVisibleAddButton;
-  final int index;
+  final int id;
   final String countryCode;
   const AddStudentView({
     super.key,
@@ -31,7 +31,7 @@ class AddStudentView extends StatefulWidget {
     required this.studentImage,
     required this.appBarTittleName,
     required this.isVisibleAddButton,
-    required this.index,
+    required this.id,
     required this.countryCode,
   });
 
@@ -40,7 +40,7 @@ class AddStudentView extends StatefulWidget {
 }
 
 class _AddStudentViewState extends State<AddStudentView> {
-  final StudentDb hiveMethods = StudentDb();
+  // final StudentDb hiveMethods = StudentDb();
   final formKey = GlobalKey<FormState>();
   List<StudentDetailsModel> studentdetailsList = [];
   final ImagePicker _picker = ImagePicker();
@@ -48,6 +48,7 @@ class _AddStudentViewState extends State<AddStudentView> {
   TextEditingController nameController = TextEditingController();
   TextEditingController ageController = TextEditingController();
   DateTime? pickedDate = DateTime.now();
+  final SQLHelper sqlHelper = SQLHelper();
   List<String> genderOptions = ['Male', 'Female', 'Other'];
   String? imageFilePath;
   String countryName = "";
@@ -76,23 +77,25 @@ class _AddStudentViewState extends State<AddStudentView> {
     }
   }
 
-  void addStudentDetails() {
+  void addStudentDetails() async {
     if (formKey.currentState!.validate()) {
       if (imageFilePath != null) {
-        hiveMethods.addStudentDetails(
+        await sqlHelper.addStudentDetails(
           StudentDetailsModel(
             name: nameController.text,
             age: ageController.text,
-            date: formattedDate,
+            dob: formattedDate,
             country: countryName,
             gender: selectedGender ?? "",
-            imagePath: imageFilePath!,
-            countryCode: countryCode,
+            imagepath: imageFilePath!,
+            countrycode: countryCode,
+            id: widget.id,
           ),
         );
-
-        FocusScope.of(context).unfocus();
-        Navigator.pop(context, true);
+        if (mounted) {
+          FocusScope.of(context).unfocus();
+          Navigator.pop(context, true);
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Please add your image'),
@@ -104,16 +107,17 @@ class _AddStudentViewState extends State<AddStudentView> {
   void updateStudentDetails() {
     if (formKey.currentState!.validate()) {
       if (imageFilePath != null) {
-        hiveMethods.updateStudentDetails(
-          index: widget.index,
+        sqlHelper.updateStudentDetails(
+          id: widget.id,
           studentDetailsModel: StudentDetailsModel(
             name: nameController.text,
             age: ageController.text,
-            date: formattedDate,
+            dob: formattedDate,
             country: countryName,
             gender: selectedGender ?? "",
-            imagePath: imageFilePath!,
-            countryCode: countryCode,
+            imagepath: imageFilePath!,
+            countrycode: countryCode,
+            id: widget.id,
           ),
         );
         FocusScope.of(context).unfocus();

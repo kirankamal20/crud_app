@@ -1,3 +1,4 @@
+import 'package:crud_app/data/db/dbservice.dart';
 import 'package:crud_app/features/home/presentation/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,7 +12,10 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  final SQLHelper sqlHelper = SQLHelper();
+  await sqlHelper.initializeDatabase();
   await Hive.initFlutter();
+
   await SystemChannels.textInput.invokeMethod('TextInput.hide');
   runApp(const MyApp());
 }
@@ -36,7 +40,6 @@ class MyApp extends StatelessWidget {
           bottomSheetTheme: const BottomSheetThemeData(
             backgroundColor: Colors.white,
           ),
-          
           datePickerTheme: const DatePickerThemeData(
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.white,

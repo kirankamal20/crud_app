@@ -17,7 +17,8 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final StudentDb hiveMethods = StudentDb();
+  // final StudentDb hiveMethods = StudentDb();
+  final SQLHelper sqlHelper = SQLHelper();
   List<StudentDetailsModel> studentdetailsList = [];
   bool isLoading = true;
   final int itemsPerPage = 4;
@@ -158,7 +159,7 @@ class _HomeViewState extends State<HomeView> {
                   item.country
                       .toLowerCase()
                       .contains(searchString.toLowerCase()) ||
-                  item.date.toLowerCase().contains(searchString.toLowerCase()))
+                  item.dob.toLowerCase().contains(searchString.toLowerCase()))
               .toList();
         } else {
           fetchStudentDetails();
@@ -168,7 +169,8 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<void> fetchStudentDetails() async {
-    final usersData = await hiveMethods.getAllStudentDetailsList();
+    final usersData = await sqlHelper.getAllStudentDetailsList();
+    // final usersData = await hiveMethods.getAllStudentDetailsList();
     log(usersData.length.toString());
     studentdetailsList = usersData;
     setState(() {
@@ -176,8 +178,9 @@ class _HomeViewState extends State<HomeView> {
     });
   }
 
-  void deleteStudentDetails({required int index}) async {
-    await hiveMethods.deleteStudentDetails(index);
+  void deleteStudentDetails({required int id}) async {
+    // await hiveMethods.deleteStudentDetails(index);
+    await sqlHelper.deleteStudentDetails(id);
     await fetchStudentDetails();
     const snackBar = SnackBar(
       backgroundColor: Colors.red,
@@ -269,7 +272,7 @@ class _HomeViewState extends State<HomeView> {
                                                     child: Image.file(
                                                       fit: BoxFit.cover,
                                                       File(studentdetails
-                                                          .imagePath),
+                                                          .imagepath),
                                                     ),
                                                   ),
                                                 ),
@@ -290,7 +293,7 @@ class _HomeViewState extends State<HomeView> {
                                                     style: const TextStyle(
                                                         fontSize: 13)),
                                                 Text(
-                                                    "Dob : ${studentdetails.date}",
+                                                    "Dob : ${studentdetails.dob}",
                                                     style: const TextStyle(
                                                         fontSize: 13)),
                                                 Text(
@@ -305,7 +308,7 @@ class _HomeViewState extends State<HomeView> {
                                             child: IconButton(
                                               onPressed: () async {
                                                 deleteStudentDetails(
-                                                    index: index);
+                                                    id: studentdetails.id);
                                               },
                                               icon: const Icon(
                                                 Icons.delete,
@@ -326,8 +329,8 @@ class _HomeViewState extends State<HomeView> {
                                                         AddStudentView(
                                                       countryCode:
                                                           studentdetails
-                                                              .countryCode,
-                                                      index: index,
+                                                              .countrycode,
+                                                      id: studentdetails.id,
                                                       isVisibleAddButton: false,
                                                       appBarTittleName:
                                                           "Update Student",
@@ -336,7 +339,7 @@ class _HomeViewState extends State<HomeView> {
                                                       studentAge:
                                                           studentdetails.age,
                                                       studentDob:
-                                                          studentdetails.date,
+                                                          studentdetails.dob,
                                                       studentCountry:
                                                           studentdetails
                                                               .country,
@@ -344,7 +347,7 @@ class _HomeViewState extends State<HomeView> {
                                                           studentdetails.gender,
                                                       studentImage:
                                                           studentdetails
-                                                              .imagePath,
+                                                              .imagepath,
                                                     ),
                                                   ),
                                                 );
@@ -391,7 +394,7 @@ class _HomeViewState extends State<HomeView> {
             context,
             MaterialPageRoute(
               builder: (context) => const AddStudentView(
-                index: 0,
+                id: 0,
                 isVisibleAddButton: true,
                 appBarTittleName: "Add student",
                 studentName: "",
