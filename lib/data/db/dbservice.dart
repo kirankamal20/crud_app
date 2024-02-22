@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:crud_app/data/model/student_details_model.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:sqflite/sqflite.dart';
 
@@ -33,18 +32,35 @@ class SQLHelper {
       """);
   }
 
-  Future<void> addStudentDetails(StudentDetailsModel userModel) async {
-    await database.rawQuery(
-        "INSERT INTO students(name,age,dob,country,gender,imagepath,countrycode) VALUES(?,?,?,?,?,?,?)",
-        [
-          userModel.name,
-          userModel.age,
-          userModel.dob,
-          userModel.country,
-          userModel.gender,
-          userModel.imagepath,
-          userModel.countrycode,
-        ]);
+  Future<void> addStudentDetails({
+    required StudentDetailsModel userModel,
+    required Function(String) onError,
+    required Function(String) onSuccess,
+  }) async {
+    try {
+      final result = await database.rawInsert(
+          "INSERT INTO students(name,age,dob,country,gender,imagepath,countrycode) VALUES(?,?,?,?,?,?,?)",
+          [
+            userModel.name,
+            userModel.age,
+            userModel.dob,
+            userModel.country,
+            userModel.gender,
+            userModel.imagepath,
+            userModel.countrycode,
+          ]);
+      if (result != -1) {
+        // The value of result will be the row ID of the newly inserted row if successful
+        log("Data inserted successfully with ID: $result");
+        onSuccess("Successfully Student Added");
+      } else {
+        // If result is -1, insertion failed
+        log("Failed to insert data");
+        onError("Failed to insert data");
+      }
+    } catch (e) {
+      onError(e.toString());
+    }
   }
 
   Future<List<StudentDetailsModel>> getAllStudentDetailsList() async {
@@ -61,28 +77,54 @@ class SQLHelper {
 
   Future<void> updateStudentDetails(
       {required int id,
+      required Function(String) onError,
+      required Function(String) onSuccess,
       required StudentDetailsModel studentDetailsModel}) async {
-    await database.rawUpdate(
-        'UPDATE students SET name = ?, age = ?, dob = ?, country = ?, gender = ?, imagepath = ?, countrycode = ? WHERE id = ?',
-        [
-          studentDetailsModel.name,
-          studentDetailsModel.age,
-          studentDetailsModel.dob,
-          studentDetailsModel.country,
-          studentDetailsModel.gender,
-          studentDetailsModel.imagepath,
-          studentDetailsModel.countrycode,
-          id
-        ]);
-
-    getAllStudentDetailsList();
+    try {
+      final result = await database.rawUpdate(
+          'UPDATE students SET name = ?, age = ?, dob = ?, country = ?, gender = ?, imagepath = ?, countrycode = ? WHERE id = ?',
+          [
+            studentDetailsModel.name,
+            studentDetailsModel.age,
+            studentDetailsModel.dob,
+            studentDetailsModel.country,
+            studentDetailsModel.gender,
+            studentDetailsModel.imagepath,
+            studentDetailsModel.countrycode,
+            id
+          ]);
+      log("update result : $result");
+      if (result == 1) {
+        onSuccess("Successfully Student Updated");
+      } else {
+        onError("Unable to Update Student");
+      }
+    } catch (e) {
+      onError(e.toString());
+    }
   }
 
-  Future<void> deleteStudentDetails(int id) async {
-    await database.rawDelete('DELETE FROM students WHERE id = ?', [id]);
-    getAllStudentDetailsList();
+  Future<void> deleteStudentDetails(
+      {required int id,
+      required Function(String) onError,
+      required Function(String) onSuccess}) async {
+    try {
+      final result =
+          await database.rawDelete('DELETE FROM students WHERE id = ?', [id]);
+      log("delete result : $result");
+      if (result == 1) {
+        onSuccess("Successfully Deleted Student");
+      } else {
+        onError("Unable to Delete Student");
+      }
+    } catch (e) {
+      onError(e.toString());
+    }
   }
 }
+
+ 
+ 
 
 // class StudentDb {
 //   String hiveBox = 'student';

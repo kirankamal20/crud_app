@@ -11,6 +11,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class AddStudentView extends StatefulWidget {
+  final Function(String) onAddStudentSuccess;
+  final Function(String) onUpdateStudentSuccess;
   final String studentName;
   final String studentAge;
   final String studentDob;
@@ -33,6 +35,8 @@ class AddStudentView extends StatefulWidget {
     required this.isVisibleAddButton,
     required this.id,
     required this.countryCode,
+    required this.onAddStudentSuccess,
+    required this.onUpdateStudentSuccess,
   });
 
   @override
@@ -81,7 +85,7 @@ class _AddStudentViewState extends State<AddStudentView> {
     if (formKey.currentState!.validate()) {
       if (imageFilePath != null) {
         await sqlHelper.addStudentDetails(
-          StudentDetailsModel(
+          userModel: StudentDetailsModel(
             name: nameController.text,
             age: ageController.text,
             dob: formattedDate,
@@ -91,11 +95,14 @@ class _AddStudentViewState extends State<AddStudentView> {
             countrycode: countryCode,
             id: widget.id,
           ),
+          onSuccess: widget.onAddStudentSuccess,
+          onError: (errorMessage) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(errorMessage),
+            ));
+          },
         );
-        if (mounted) {
-          FocusScope.of(context).unfocus();
-          Navigator.pop(context, true);
-        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Please add your image'),
@@ -119,9 +126,14 @@ class _AddStudentViewState extends State<AddStudentView> {
             countrycode: countryCode,
             id: widget.id,
           ),
+          onSuccess: widget.onUpdateStudentSuccess,
+          onError: (errorMessage) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(errorMessage),
+            ));
+          },
         );
-        FocusScope.of(context).unfocus();
-        Navigator.pop(context, true);
       } else {
         const snackBar = SnackBar(
           content: Text('Please add your image'),
@@ -297,6 +309,9 @@ class _AddStudentViewState extends State<AddStudentView> {
                   onCountrySelected: (country) {
                     countryName = country.name;
                   },
+                  selectedCountry: Country(
+                      name: widget.studentCountry,
+                      flagCode: widget.countryCode),
                 ),
                 const SizedBox(
                   height: 10,

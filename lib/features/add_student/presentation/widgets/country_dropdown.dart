@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 class CountryPicker extends StatefulWidget {
   final Function(Country) onCountrySelected;
-
-  const CountryPicker({super.key, required this.onCountrySelected});
+  final Country selectedCountry;
+  const CountryPicker(
+      {super.key,
+      required this.onCountrySelected,
+      required this.selectedCountry});
 
   @override
   State<CountryPicker> createState() => _CountryPickerState();

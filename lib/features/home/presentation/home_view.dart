@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:crud_app/data/db/dbservice.dart';
 import 'package:crud_app/data/model/student_details_model.dart';
 import 'package:crud_app/features/add_student/presentation/add_student_view.dart';
+import 'package:crud_app/features/home/presentation/widgets/student_card.dart';
 import 'package:easy_search_bar/easy_search_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -24,6 +25,12 @@ class _HomeViewState extends State<HomeView> {
   final int itemsPerPage = 4;
   int currentPage = 1;
   int currentIndex = 0;
+  @override
+  void initState() {
+    fetchStudentDetails();
+
+    super.initState();
+  }
 
   Widget buildPagination() {
     final int totalPages = (studentdetailsList.length / itemsPerPage).ceil();
@@ -180,14 +187,24 @@ class _HomeViewState extends State<HomeView> {
 
   void deleteStudentDetails({required int id}) async {
     // await hiveMethods.deleteStudentDetails(index);
-    await sqlHelper.deleteStudentDetails(id);
-    await fetchStudentDetails();
-    const snackBar = SnackBar(
-      backgroundColor: Colors.red,
-      content: Text("Successfully Deleted"),
+    await sqlHelper.deleteStudentDetails(
+      id: id,
+      onError: (errorMessage) {
+        var snackBar = SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(errorMessage),
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      },
+      onSuccess: (successMessage) async {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(successMessage),
+        ));
+        await fetchStudentDetails();
+      },
     );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   List<StudentDetailsModel> studentListPagination() {
@@ -198,18 +215,6 @@ class _HomeViewState extends State<HomeView> {
     } else {
       return studentdetailsList.sublist(startIndex, endIndex);
     }
-  }
-
-  @override
-  void initState() {
-    fetchStudentDetails();
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
@@ -251,126 +256,43 @@ class _HomeViewState extends State<HomeView> {
                                 final studentdetails =
                                     studentListPagination()[index];
 
-                                return SizedBox(
-                                  height: 150,
-                                  child: Card(
-                                    elevation: 3,
-                                    surfaceTintColor: Colors.white,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Stack(
-                                        children: [
-                                          Center(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Center(
-                                                  child: SizedBox(
-                                                    height: 150,
-                                                    width: 180,
-                                                    child: Image.file(
-                                                      fit: BoxFit.cover,
-                                                      File(studentdetails
-                                                          .imagepath),
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(
-                                                  height: 5,
-                                                ),
-                                                Text(
-                                                  "Name : ${studentdetails.name}",
-                                                  style: const TextStyle(
-                                                      fontSize: 13),
-                                                ),
-                                                Text(
-                                                    "Age : ${studentdetails.age}",
-                                                    style: const TextStyle(
-                                                        fontSize: 13)),
-                                                Text(
-                                                    "gender : ${studentdetails.gender}",
-                                                    style: const TextStyle(
-                                                        fontSize: 13)),
-                                                Text(
-                                                    "Dob : ${studentdetails.dob}",
-                                                    style: const TextStyle(
-                                                        fontSize: 13)),
-                                                Text(
-                                                    "Country : ${studentdetails.country}",
-                                                    style: const TextStyle(
-                                                        fontSize: 13))
-                                              ],
-                                            ),
-                                          ),
-                                          Positioned(
-                                            right: 0,
-                                            child: IconButton(
-                                              onPressed: () async {
-                                                deleteStudentDetails(
-                                                    id: studentdetails.id);
-                                              },
-                                              icon: const Icon(
-                                                Icons.delete,
-                                                color: Colors.red,
-                                              ),
-                                            ),
-                                          ),
-                                          Positioned(
-                                            bottom: -8,
-                                            right: -8,
-                                            child: IconButton(
-                                              onPressed: () async {
-                                                var result =
-                                                    await Navigator.push<bool>(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        AddStudentView(
-                                                      countryCode:
-                                                          studentdetails
-                                                              .countrycode,
-                                                      id: studentdetails.id,
-                                                      isVisibleAddButton: false,
-                                                      appBarTittleName:
-                                                          "Update Student",
-                                                      studentName:
-                                                          studentdetails.name,
-                                                      studentAge:
-                                                          studentdetails.age,
-                                                      studentDob:
-                                                          studentdetails.dob,
-                                                      studentCountry:
-                                                          studentdetails
-                                                              .country,
-                                                      studentGender:
-                                                          studentdetails.gender,
-                                                      studentImage:
-                                                          studentdetails
-                                                              .imagepath,
-                                                    ),
-                                                  ),
-                                                );
-                                                if (result != null &&
-                                                    result == true) {
-                                                  showSnackBar(
-                                                      message:
-                                                          "Successfully Updated",
-                                                      color: Colors.blue);
-                                                  await fetchStudentDetails();
-                                                }
-                                              },
-                                              icon: const Icon(
-                                                Icons.edit,
-                                                color: Colors.blue,
-                                                size: 17,
-                                              ),
-                                            ),
-                                          )
-                                        ],
+                                return StudnetCardWidget(
+                                  studentdetails: studentdetails,
+                                  deleteStudent: () {
+                                    deleteStudentDetails(id: studentdetails.id);
+                                  },
+                                  addStudent: () {
+                                    Navigator.push<bool>(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AddStudentView(
+                                          onAddStudentSuccess: (m) {},
+                                          countryCode:
+                                              studentdetails.countrycode,
+                                          id: studentdetails.id,
+                                          isVisibleAddButton: false,
+                                          appBarTittleName: "Update Student",
+                                          studentName: studentdetails.name,
+                                          studentAge: studentdetails.age,
+                                          studentDob: studentdetails.dob,
+                                          studentCountry:
+                                              studentdetails.country,
+                                          studentGender: studentdetails.gender,
+                                          studentImage:
+                                              studentdetails.imagepath,
+                                          onUpdateStudentSuccess:
+                                              (successMessage) async {
+                                            FocusScope.of(context).unfocus();
+                                            Navigator.pop(context);
+                                            showSnackBar(
+                                                message: successMessage,
+                                                color: Colors.blue);
+                                            await fetchStudentDetails();
+                                          },
+                                        ),
                                       ),
-                                    ),
-                                  ),
+                                    );
+                                  },
                                 );
                               },
                             ),
@@ -390,26 +312,29 @@ class _HomeViewState extends State<HomeView> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          var result = await Navigator.push(
+          Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const AddStudentView(
+              builder: (context) => AddStudentView(
+                onUpdateStudentSuccess: (p0) {},
                 id: 0,
                 isVisibleAddButton: true,
-                appBarTittleName: "Add student",
+                appBarTittleName: "Add Student",
                 studentName: "",
                 studentAge: "",
                 studentDob: "",
                 studentCountry: "",
                 studentImage: null,
                 countryCode: "+91",
+                onAddStudentSuccess: (successMessage) async {
+                  FocusScope.of(context).unfocus();
+                  Navigator.pop(context);
+                  showSnackBar(message: successMessage, color: Colors.green);
+                  await fetchStudentDetails();
+                },
               ),
             ),
           );
-          if (result != null && result == true) {
-            showSnackBar(message: "Successfully Added", color: Colors.green);
-            await fetchStudentDetails();
-          }
         },
         child: const Icon(
           Icons.add,
